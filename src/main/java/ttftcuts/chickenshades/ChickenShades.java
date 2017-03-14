@@ -6,7 +6,6 @@ import net.minecraft.client.resources.IReloadableResourceManager;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.resources.IResourceManagerReloadListener;
-import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.RenderLivingEvent;
@@ -58,9 +57,9 @@ public class ChickenShades implements IResourceManagerReloadListener
     }
 
     @SubscribeEvent
-    public void handleFanciness(RenderLivingEvent.Pre<EntityCreature> event) {
+    public void handleFanciness(RenderLivingEvent.Pre<EntityLivingBase> event) {
         EntityLivingBase entity = event.getEntity();
-        RenderLivingBase<EntityCreature> renderer = event.getRenderer();
+        RenderLivingBase<EntityLivingBase> renderer = event.getRenderer();
 
         String resourceName = getResourceName(entity);
 
@@ -102,8 +101,8 @@ public class ChickenShades implements IResourceManagerReloadListener
     }
 
     @SubscribeEvent
-    public void unhandleFanciness(RenderLivingEvent.Post<EntityCreature> event) {
-        RenderLivingBase<EntityCreature> renderer = event.getRenderer();
+    public void unhandleFanciness(RenderLivingEvent.Post<EntityLivingBase> event) {
+        RenderLivingBase<EntityLivingBase> renderer = event.getRenderer();
 
         if (layers.containsKey(renderer)) {
             LayerShades layer = layers.get(renderer);
@@ -119,7 +118,8 @@ public class ChickenShades implements IResourceManagerReloadListener
         }
 
         Map<String,String> submap = resourceNames.get(clazz);
-        String name = entity.getName();
+        String name = entity.hasCustomName() ? entity.getCustomNameTag() : entity.getName();
+
         if (!submap.containsKey(name)) {
             submap.put(name, buildResourceName(clazz.getSimpleName(), name));
         }
