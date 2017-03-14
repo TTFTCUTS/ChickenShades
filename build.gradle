@@ -1,0 +1,92 @@
+ext.configFile = file "build.properties"
+configFile.withReader {
+	def prop = new Properties()
+	prop.load(it)
+	project.ext.config = new ConfigSlurper().parse prop
+}
+
+// For those who want the bleeding edge
+buildscript {
+    repositories {
+        jcenter()
+        maven {
+            name = "forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
+    }
+}
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'net.minecraftforge.gradle.forge'
+
+///////////////////////////////////////////////////
+// IDE Settings
+///////////////////////////////////////////////////
+idea {
+    project {
+        languageLevel = '1.8'
+    }
+}
+
+///////////////////////////////////////////////////
+// ForgeGradle
+///////////////////////////////////////////////////
+version = config.mod_version
+group= config.group_name
+archivesBaseName = "${config.mod_id}-${config.minecraft_version}"
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+minecraft {
+    version = "${config.minecraft_version}-${config.forge_version}"
+    runDir = "run"
+    
+    mappings = config.mcp_mappings
+    makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
+    
+    replace '@MOD_VERSION@', version
+    replace '@MOD_ID@', config.mod_id
+}
+
+dependencies {
+
+}
+
+processResources
+{
+    // this will ensure that this task is redone when the versions change.
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+
+    // replace stuff in mcmod.info, nothing else
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+                
+        // replace version and mcversion
+        expand ([
+			'version': project.version, 
+			'mcversion': project.minecraft.version,
+			'forge_version': config.forge_version,
+            'mod_version': config.mod_version,
+            'minecraft_version': config.minecraft_version
+		])
+    }
+        
+    // copy everything else, thats not the mcmod.info
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+}
+
+task deobfJar(type: Jar) {
+    from(sourceSets.main.output)
+    archiveName = "${baseName}-${version}-deobf.${extension}"
+}
+
+artifacts {
+    archives deobfJar
+}

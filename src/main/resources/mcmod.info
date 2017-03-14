@@ -1,0 +1,16 @@
+[
+{
+  "modid": "chickenshades",
+  "name": "Chicken Shades",
+  "description": "Conditional mob skin switching.",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["TTFTCUTS"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
