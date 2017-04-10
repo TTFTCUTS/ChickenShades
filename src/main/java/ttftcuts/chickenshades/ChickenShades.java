@@ -1,18 +1,27 @@
 package ttftcuts.chickenshades;
 
+import com.mojang.realmsclient.gui.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.RenderLivingBase;
 import net.minecraft.client.resources.IReloadableResourceManager;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.resources.IResourceManagerReloadListener;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.init.Items;
+import net.minecraft.item.ItemMonsterPlacer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.RenderLivingEvent;
+import net.minecraftforge.client.event.RenderTooltipEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.registry.EntityRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -121,10 +130,22 @@ public class ChickenShades implements IResourceManagerReloadListener
         String name = entity.hasCustomName() ? entity.getCustomNameTag() : entity.getName();
 
         if (!submap.containsKey(name)) {
-            submap.put(name, buildResourceName(clazz.getSimpleName(), name));
+
+
+            submap.put(name, buildResourceName(getTypeName(clazz), name));
         }
 
         return submap.get(name);
+    }
+
+    public static String getTypeName(Class<? extends EntityLivingBase> clazz) {
+        String typename = EntityList.CLASS_TO_NAME.get(clazz);
+
+        if (typename == null) {
+            typename = clazz.getSimpleName();
+        }
+
+        return typename.toLowerCase(Locale.ENGLISH);
     }
 
     private static final Pattern PATTERN = Pattern.compile("[^A-Za-z0-9_\\-]");
@@ -145,5 +166,23 @@ public class ChickenShades implements IResourceManagerReloadListener
 
         int end = Math.min(encoded.length(),MAX_LENGTH);
         return encoded.substring(0,end).toLowerCase(Locale.ENGLISH);
+    }
+
+    @SubscribeEvent
+    public void onTooltip(ItemTooltipEvent event) {
+        ItemStack stack = event.getItemStack();
+        if (stack != null && stack.getItem() instanceof ItemMonsterPlacer) {
+            String name = ItemMonsterPlacer.getEntityIdFromItem(stack);
+
+            Class<? extends Entity> clazz = EntityList.NAME_TO_CLASS.get(name);
+
+            if (EntityLivingBase.class.isAssignableFrom(clazz)) {
+                Class<? extends EntityLivingBase> livingclazz = (Class<? extends EntityLivingBase>)clazz;
+
+                name = getTypeName(livingclazz);
+
+                event.getToolTip().add(ChatFormatting.GRAY + "ChickenShades: "+ name);
+            }
+        }
     }
 }
