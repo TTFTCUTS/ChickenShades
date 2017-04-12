@@ -148,13 +148,13 @@ public class ChickenShades implements IResourceManagerReloadListener
         return typename.toLowerCase(Locale.ENGLISH);
     }
 
-    private static final Pattern PATTERN = Pattern.compile("[^A-Za-z0-9_\\-]");
+    private static final Pattern PATTERN = Pattern.compile("[^A-Za-z0-9_\\-.]");
     private static final int MAX_LENGTH = 127;
 
     public static String buildResourceName(String typeName, String displayName) {
         StringBuffer sb = new StringBuffer();
 
-        Matcher m = PATTERN.matcher((typeName +"_" + displayName).replace(" ", "_"));
+        Matcher m = PATTERN.matcher((typeName +"." + displayName).replace(" ", "_"));
 
         while (m.find()) {
             String replacement = "%"+Integer.toHexString(m.group().charAt(0)).toUpperCase();
