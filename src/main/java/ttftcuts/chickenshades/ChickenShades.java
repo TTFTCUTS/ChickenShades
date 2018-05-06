@@ -91,7 +91,6 @@ public class ChickenShades implements IResourceManagerReloadListener
             }
 
             if (r != null) {
-                logger.info("We found the resources and are adding them to the whitelist: " + r.toString());
                 whitelist.add(resourceName);
             } else {
                 blacklist.add(resourceName);
@@ -142,13 +141,13 @@ public class ChickenShades implements IResourceManagerReloadListener
 
     public static String getTypeName(Class<? extends EntityLivingBase> clazz) {
         ResourceLocation typename = EntityList.getKey(clazz);
-        String simplename = "";
+        String name = typename!=null? typename.toString() : "";
 
-        if (typename==null) {
-            simplename = clazz.getSimpleName();
+        if (name.equals("")) {
+            name = clazz.getSimpleName();
         }
 
-        return typename != null ? typename.toString().toLowerCase() : simplename.toLowerCase();
+        return name.toLowerCase(Locale.ENGLISH);
     }
 
     private static final Pattern PATTERN = Pattern.compile("[^A-Za-z0-9_\\-.]");
@@ -160,8 +159,7 @@ public class ChickenShades implements IResourceManagerReloadListener
         Matcher m = PATTERN.matcher((typeName +"." + displayName).replace(" ", "_"));
 
         while (m.find()) {
-            String replacement = "%"+Integer.toHexString(m.group().charAt(0)).toLowerCase();
-            m.appendReplacement(sb,replacement);
+            m.appendReplacement(sb,".");
         }
         m.appendTail(sb);
 
