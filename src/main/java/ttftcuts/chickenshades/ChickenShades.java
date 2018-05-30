@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
 public class ChickenShades implements IResourceManagerReloadListener
 {
     public static final String MODID = "chickenshades";
-    public static final String VERSION = "1.0.0";
+    public static final String VERSION = "1.2.0";
 
     public static final Logger logger = LogManager.getLogger(MODID);
 
@@ -57,7 +57,8 @@ public class ChickenShades implements IResourceManagerReloadListener
     @Override
     public void onResourceManagerReload(IResourceManager resourceManager) {
         for (RenderLivingBase b : layers.keySet()) {
-            b.removeLayer(layers.get(b));
+            //b.removeLayer(layers.get(b));
+            b.layerRenderers.remove(layers.get(b));
         }
         resourceNames.clear();
         layers.clear();
@@ -71,7 +72,7 @@ public class ChickenShades implements IResourceManagerReloadListener
         RenderLivingBase<EntityLivingBase> renderer = event.getRenderer();
 
         String resourceName = getResourceName(entity);
-
+        
         if (blacklist.contains(resourceName)) {
             return;
         }
@@ -127,7 +128,7 @@ public class ChickenShades implements IResourceManagerReloadListener
         }
 
         Map<String,String> submap = resourceNames.get(clazz);
-        String name = entity.hasCustomName() ? entity.getCustomNameTag() : entity.getName();
+        String name = entity.hasCustomName() ? entity.getCustomNameTag().toLowerCase() : entity.getName().toLowerCase();
 
         if (!submap.containsKey(name)) {
 
@@ -139,13 +140,14 @@ public class ChickenShades implements IResourceManagerReloadListener
     }
 
     public static String getTypeName(Class<? extends EntityLivingBase> clazz) {
-        String typename = EntityList.CLASS_TO_NAME.get(clazz);
+        ResourceLocation typename = EntityList.getKey(clazz);
+        String name = typename!=null? typename.toString() : "";
 
-        if (typename == null) {
-            typename = clazz.getSimpleName();
+        if (name.equals("")) {
+            name = clazz.getSimpleName();
         }
 
-        return typename.toLowerCase(Locale.ENGLISH);
+        return name.toLowerCase(Locale.ENGLISH);
     }
 
     private static final Pattern PATTERN = Pattern.compile("[^A-Za-z0-9_\\-.]");
@@ -157,8 +159,7 @@ public class ChickenShades implements IResourceManagerReloadListener
         Matcher m = PATTERN.matcher((typeName +"." + displayName).replace(" ", "_"));
 
         while (m.find()) {
-            String replacement = "%"+Integer.toHexString(m.group().charAt(0)).toUpperCase();
-            m.appendReplacement(sb,replacement);
+            m.appendReplacement(sb,".");
         }
         m.appendTail(sb);
 
@@ -171,12 +172,12 @@ public class ChickenShades implements IResourceManagerReloadListener
     @SubscribeEvent
     public void onTooltip(ItemTooltipEvent event) {
         ItemStack stack = event.getItemStack();
-        if (stack != null && stack.getItem() instanceof ItemMonsterPlacer) {
-            String name = ItemMonsterPlacer.getEntityIdFromItem(stack);
+        if (!stack.isEmpty() && stack.getItem() instanceof ItemMonsterPlacer) {
+            String name = ItemMonsterPlacer.getNamedIdFrom(stack).toString();
+            
+            Class<? extends Entity> clazz = EntityList.getClassFromName(name);
 
-            Class<? extends Entity> clazz = EntityList.NAME_TO_CLASS.get(name);
-
-            if (EntityLivingBase.class.isAssignableFrom(clazz)) {
+            if (clazz!= null && EntityLivingBase.class.isAssignableFrom(clazz)) {
                 Class<? extends EntityLivingBase> livingclazz = (Class<? extends EntityLivingBase>)clazz;
 
                 name = getTypeName(livingclazz);

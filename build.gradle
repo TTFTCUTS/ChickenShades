@@ -15,7 +15,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
     }
 }
 apply plugin: 'java'
@@ -80,6 +80,8 @@ processResources
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
     }
+
+    rename '(.+_at.cfg)', 'META-INF/$1'
 }
 
 task deobfJar(type: Jar) {
@@ -89,4 +91,12 @@ task deobfJar(type: Jar) {
 
 artifacts {
     archives deobfJar
+}
+
+jar {
+
+    manifest {
+
+        attributes 'FMLAT': 'MODID_at.cfg'
+    }
 }
