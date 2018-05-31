@@ -97,6 +97,6 @@ jar {
 
     manifest {
 
-        attributes 'FMLAT': 'MODID_at.cfg'
+        attributes 'FMLAT': '${config.mod_id}_at.cfg'
     }
 }
