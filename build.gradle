@@ -80,8 +80,6 @@ processResources
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
     }
-
-    rename '(.+_at.cfg)', 'META-INF/$1'
 }
 
 task deobfJar(type: Jar) {
@@ -91,12 +89,4 @@ task deobfJar(type: Jar) {
 
 artifacts {
     archives deobfJar
-}
-
-jar {
-
-    manifest {
-
-        attributes 'FMLAT': '${config.mod_id}_at.cfg'
-    }
 }

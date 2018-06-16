@@ -3,6 +3,7 @@ package ttftcuts.chickenshades;
 import com.mojang.realmsclient.gui.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.RenderLivingBase;
+import net.minecraft.client.renderer.entity.layers.LayerRenderer;
 import net.minecraft.client.resources.IReloadableResourceManager;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.client.resources.IResourceManager;
@@ -10,21 +11,20 @@ import net.minecraft.client.resources.IResourceManagerReloadListener;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.init.Items;
 import net.minecraft.item.ItemMonsterPlacer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.RenderLivingEvent;
-import net.minecraftforge.client.event.RenderTooltipEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.registry.EntityRegistry;
+import net.minecraftforge.fml.relauncher.ReflectionHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,7 +33,9 @@ import java.util.regex.Pattern;
 public class ChickenShades implements IResourceManagerReloadListener
 {
     public static final String MODID = "chickenshades";
-    public static final String VERSION = "1.2.0";
+    public static final String VERSION = "1.2.1";
+    
+    private Field fieldLayerRenderers;
 
     public static final Logger logger = LogManager.getLogger(MODID);
 
@@ -56,10 +58,26 @@ public class ChickenShades implements IResourceManagerReloadListener
 
     @Override
     public void onResourceManagerReload(IResourceManager resourceManager) {
-        for (RenderLivingBase b : layers.keySet()) {
-            //b.removeLayer(layers.get(b));
-            b.layerRenderers.remove(layers.get(b));
+        
+        if(fieldLayerRenderers == null) {
+            fieldLayerRenderers = ReflectionHelper.findField(RenderLivingBase.class,"field_177097_h", "layerRenderers");
         }
+        
+        logger.info("Removing added LayerRenders for the ResourcePack reload!");
+        
+        for (RenderLivingBase b : layers.keySet()) {
+            
+            try
+            {
+                List<LayerRenderer> layerRenderers =(List<LayerRenderer>) fieldLayerRenderers.get(b);
+                layerRenderers.remove(layers.get(b));
+                fieldLayerRenderers.set(b, layerRenderers);
+                
+            } catch(Exception e) {
+                logger.error("Unable to access {} to remove LayerRenders",b.toString());
+            }
+        }
+        
         resourceNames.clear();
         layers.clear();
         blacklist.clear();
